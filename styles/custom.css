@@ -1,0 +1,136 @@
+/* Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: Arial, sans-serif;
+  background: #fff;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Navbar */
+.navbar {
+  background: #f9f9f9;
+  border-bottom: 1px solid #ddd;
+  padding: 12px 0;
+}
+.navbar .container {
+  width: 95%;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.navbar .brand {
+  font-size: 18px;
+  font-weight: bold;
+  color: #444;
+  margin-left: -20px;
+  margin-right: -50px;
+}
+.navbar .nav-links a {
+  margin-left: 25px;
+  text-decoration: none;
+  color: #444;
+  font-weight: 500;
+}
+.navbar .nav-links a:hover { color: #007bff; }
+.navbar .btn-login {
+  background: #007bff;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+.navbar .btn-logout {
+  background: #dc3545;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+.navbar .user {
+    position: absolute;
+  right: 60px;
+  font-weight: bold;
+  color: #555;
+
+}
+.hero {
+  height: 280px;
+  background: url('../img/home.jpg') no-repeat center center/cover;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;
+}
+.hero-overlay {
+  background: rgba(0,0,0,0.4);
+  padding: 40px;
+  text-align: center;
+  color: white;
+  border-radius: 8px;
+  width: 100%;
+  height: 70vh;
+}
+.hero-overlay h1 { font-size: 40px; display: block; margin: auto !important; margin-top: 25vh !important;  }
+.hero-overlay p { font-size: 18px; }
+
+.events {
+  padding: 40px 50px;
+}
+.events h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  text-align: center;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+.event-card {
+  background: #fff;
+  border: 1px solid #000000;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.event-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+.event-content {
+  padding: 15px;
+}
+.event-content h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #333;
+}
+.event-content .date-location {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 10px;
+}
+.event-content p {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.btn-primary {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-primary:hover { background: #0056b3; }
+
+.footer {
+  text-align: center;
+  padding: 20px;
+  background: #f9f9f9;
+  margin-top: 40px;
+  border-top: 1px solid #ddd;
+  color: #666;
+}

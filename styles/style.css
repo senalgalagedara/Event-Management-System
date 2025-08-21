@@ -1,0 +1,124 @@
+:root {
+  --bg: #f8fafc;          /* light gray */
+  --card: rgba(255, 255, 255, 0.25); /* glass effect */
+  --muted: #64748b;       /* slate-500 */
+  --text: #1e293b;        /* slate-800 */
+  --accent: #0ea5e9;      /* sky-500 */
+  --accent2: #6366f1;     /* indigo-500 */
+  --danger: #dc2626;
+  --ok: #16a34a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: url("../img/loginbg.jpg") no-repeat center center fixed;
+  background-size: cover;
+  color: var(--text);
+  font: 16px/1.5 system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  min-height: 100%;
+}
+
+/* Container */
+.container {
+  max-width: 100%;
+  margin: 40px auto;
+  padding: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(15px);        
+  -webkit-backdrop-filter: blur(15px);
+  width: 35%;
+}
+
+.btn {
+  display: block;
+  padding: 10px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 15px;
+  transition: .2s;
+  background: #1e293b !important;
+  margin: auto;
+  font-size: 20px;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, .1);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: rgba(255,255,255,0.8);
+  color: var(--text);
+  outline: none;
+}
+
+/* Labels */
+label {
+  display: block;
+  margin: 10px 0 6px;
+  color: black;
+}
+
+/* Alerts */
+.alert {
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+
+.alert-ok {
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.alert-bad {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+/* Footer */
+.footer {
+  margin-top: 30px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+  opacity: .9;
+}
+
+small.muted {
+  color: black;
+  text-align: center !important;
+  width: 100%;
+  display: block;
+  margin-top: 10px;
+}

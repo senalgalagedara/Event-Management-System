@@ -1,5 +1,4 @@
 <?php
-// auth.php - session and access control helpers
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

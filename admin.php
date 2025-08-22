@@ -3,236 +3,262 @@ require_once 'config.php';
 require_once 'auth.php';
 require_admin();
 
-$action = $_GET['action'] ?? 'reports'; // default to reports
-$info = ''; $error = '';
+$action = $_GET['action'] ?? 'reports';
 
-// ---- USER MANAGEMENT ----
 if ($action === 'users' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (($_POST['form'] ?? '') === 'create_user') {
-        $username = trim($_POST['username']);
-        $password = trim($_POST['password']);
-        $role = $_POST['role'] === 'admin' ? 'admin' : 'user';
-        if ($username && $password) {
-            $hash = hash('sha256', $password);
-            $stmt = $conn->prepare("INSERT INTO users (username, password_hash, role) VALUES (?,?,?)");
-            $stmt->bind_param("sss", $username, $hash, $role);
-            $stmt->execute();
-            $info = "User created.";
-        } else { $error = "Username and password required."; }
+  if ($_POST['form'] === 'create_user') {
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
+    $role = $_POST['role'];
+    if ($username && $password) {
+      $hash = hash('sha256', $password);
+      $stmt = $conn->prepare("INSERT INTO users (username,password_hash,role) VALUES (?,?,?)");
+      $stmt->bind_param("sss", $username, $hash, $role);
+      $stmt->execute();
     }
-    if (($_POST['form'] ?? '') === 'update_user') {
-        $id = (int)$_POST['id'];
-        $role = $_POST['role'] === 'admin' ? 'admin' : 'user';
-        if (!empty($_POST['password'])) {
-            $hash = hash('sha256', $_POST['password']);
-            $stmt = $conn->prepare("UPDATE users SET role=?, password_hash=? WHERE id=?");
-            $stmt->bind_param("ssi", $role, $hash, $id);
-        } else {
-            $stmt = $conn->prepare("UPDATE users SET role=? WHERE id=?");
-            $stmt->bind_param("si", $role, $id);
-        }
-        $stmt->execute();
-        $info = "User updated.";
+  }
+  if ($_POST['form'] === 'update_user') {
+    $id = (int)$_POST['id'];
+    $username = trim($_POST['username']);
+    $role = $_POST['role'];
+    if (!empty($_POST['password'])) {
+      $hash = hash('sha256', $_POST['password']);
+      $stmt = $conn->prepare("UPDATE users SET username=?,role=?,password_hash=? WHERE id=?");
+      $stmt->bind_param("sssi", $username, $role, $hash, $id);
+    } else {
+      $stmt = $conn->prepare("UPDATE users SET username=?,role=? WHERE id=?");
+      $stmt->bind_param("ssi", $username, $role, $id);
     }
-}
-if ($action === 'delete_user' && isset($_GET['id'])) {
-    $id = (int)$_GET['id'];
-    $stmt = $conn->prepare("DELETE FROM users WHERE id=?");
-    $stmt->bind_param("i", $id);
     $stmt->execute();
-    $info = "User deleted.";
-    $action = 'users';
+  }
+}
+if ($action === "delete_user" && isset($_GET['id'])) {
+  $id = (int)$_GET['id'];
+  $conn->query("DELETE FROM users WHERE id=$id");
+  $action = "users";
 }
 
-// ---- EVENT MANAGEMENT ----
 if ($action === 'events' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (($_POST['form'] ?? '') === 'create_event') {
-        $title = trim($_POST['title']);
-        $location = trim($_POST['location']);
-        $event_date = trim($_POST['event_date']);
-        $desc = trim($_POST['description']);
-        if ($title && $event_date) {
-            $stmt = $conn->prepare("INSERT INTO events (title, location, event_date, description) VALUES (?,?,?,?)");
-            $stmt->bind_param("ssss", $title, $location, $event_date, $desc);
-            $stmt->execute();
-            $info = "Event created.";
-        } else { $error = "Title and date required."; }
-    }
-    if (($_POST['form'] ?? '') === 'update_event') {
-        $id = (int)$_POST['id'];
-        $title = trim($_POST['title']);
-        $location = trim($_POST['location']);
-        $event_date = trim($_POST['event_date']);
-        $desc = trim($_POST['description']);
-        $stmt = $conn->prepare("UPDATE events SET title=?, location=?, event_date=?, description=? WHERE id=?");
-        $stmt->bind_param("ssssi", $title, $location, $event_date, $desc, $id);
-        $stmt->execute();
-        $info = "Event updated.";
-    }
-}
-if ($action === 'delete_event' && isset($_GET['id'])) {
-    $id = (int)$_GET['id'];
-    $stmt = $conn->prepare("DELETE FROM events WHERE id=?");
-    $stmt->bind_param("i", $id);
+  if ($_POST['form'] === 'create_event') {
+    $stmt = $conn->prepare("INSERT INTO events(title,location,event_date,description) VALUES (?,?,?,?)");
+    $stmt->bind_param("ssss", $_POST['title'], $_POST['location'], $_POST['event_date'], $_POST['description']);
     $stmt->execute();
-    $info = "Event deleted.";
-    $action = 'events';
+  }
+  if ($_POST['form'] === 'update_event') {
+    $id = (int)$_POST['id'];
+    $stmt = $conn->prepare("UPDATE events SET title=?,location=?,event_date=?,description=? WHERE id=?");
+    $stmt->bind_param("ssssi", $_POST['title'], $_POST['location'], $_POST['event_date'], $_POST['description'], $id);
+    $stmt->execute();
+  }
+}
+if ($action === "delete_event" && isset($_GET['id'])) {
+  $id = (int)$_GET['id'];
+  $conn->query("DELETE FROM events WHERE id=$id");
+  $action = "events";
 }
 
-// ---- LOAD DATA ----
 $users = [];
-if ($action === 'users') {
-    $res = $conn->query("SELECT id, username, role, created_at FROM users ORDER BY id DESC");
-    if ($res) { while ($row = $res->fetch_assoc()) { $users[] = $row; } }
-}
-
 $events = [];
-if ($action === 'events') {
-    $res = $conn->query("SELECT id, title, location, event_date, description FROM events ORDER BY id ASC");
-    if ($res) { while ($row = $res->fetch_assoc()) { $events[] = $row; } }
-}
-
 $reports = [];
-if ($action === 'reports') {
-    $res = $conn->query("SELECT e.id, e.title, COUNT(r.id) as total 
+if ($action === "users") {
+  $res = $conn->query("SELECT * FROM users ORDER BY id ASC");
+  while ($row = $res->fetch_assoc()) $users[] = $row;
+}
+if ($action === "events") {
+  $res = $conn->query("SELECT * FROM events ORDER BY id ASC");
+  while ($row = $res->fetch_assoc()) $events[] = $row;
+}
+if ($action === "reports") {
+  $res = $conn->query("SELECT e.id, e.title, COUNT(r.id) as total 
                          FROM events e 
                          LEFT JOIN registrations r ON r.event_id=e.id 
                          GROUP BY e.id, e.title ORDER BY e.id ASC");
-    if ($res) { while ($row = $res->fetch_assoc()) { $reports[] = $row; } }
+  while ($row = $res->fetch_assoc()) $reports[] = $row;
 }
 ?>
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin Dashboard | CEMS</title>
-  <link rel="stylesheet" href="assets/style.css">
-  <style>
-    body { display:flex; margin:0; font-family:Arial; }
-    .sidebar { width:220px; background:#2c3e50; color:#fff; min-height:100vh; padding:20px 10px; }
-    .sidebar h2 { color:#ecf0f1; }
-    .sidebar a { display:block; color:#ecf0f1; text-decoration:none; padding:10px; margin:5px 0; border-radius:5px; }
-    .sidebar a.active, .sidebar a:hover { background:#34495e; }
-    .main { flex:1; padding:20px; background:#ecf0f1; min-height:100vh; }
-    .card { background:#fff; padding:20px; margin-bottom:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th,td { border:1px solid #ddd; padding:8px; text-align:left; }
-    th { background:#f4f4f4; }
-    .btn { padding:6px 12px; border-radius:4px; background:#3498db; color:#fff; text-decoration:none; border:none; cursor:pointer; }
-    .btn-danger { background:#e74c3c; }
-    .btn:hover { opacity:0.9; }
-    .alert-ok { background:#2ecc71; color:#fff; padding:10px; border-radius:4px; margin-bottom:10px; }
-    .alert-bad { background:#e74c3c; color:#fff; padding:10px; border-radius:4px; margin-bottom:10px; }
-  </style>
-</head>
-<body>
-  <div class="sidebar">
-    <h2>Admin</h2>
-    <a href="?action=reports" class="<?php if($action==='reports') echo 'active'; ?>">Reports</a>
-    <a href="?action=users" class="<?php if($action==='users') echo 'active'; ?>">Manage Users</a>
-    <a href="?action=events" class="<?php if($action==='events') echo 'active'; ?>">Manage Events</a>
-    <a href="logout.php" class="btn-danger" style="margin-top:20px; display:block;">Logout</a>
-  </div>
-  <div class="main">
-    <?php if ($info): ?><div class="alert-ok"><?php echo htmlspecialchars($info); ?></div><?php endif; ?>
-    <?php if ($error): ?><div class="alert-bad"><?php echo htmlspecialchars($error); ?></div><?php endif; ?>
 
-    <?php if ($action === 'reports'): ?>
-      <div class="card">
-        <h2>Registrations per Event</h2>
+<head>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <link rel="stylesheet" href="styles/admin.css">
+  <title>Admin</title>
+</head>
+
+<body>
+  <div class="admin-container">
+    <div class="sidebar">
+      <div style="display: flex; ">
+        <h2 style="color:white;">Admin</h2>
+        <a href="logout.php" class="logout" style="margin-top: -10px;">
+          <span class="material-symbols-outlined">
+            logout
+          </span> </a>
+      </div>
+
+      <a class="hov" href="?action=reports" class="<?= ($action === 'reports' ? 'active' : '') ?>">Reports</a>
+      <a class="hov" href="?action=users" class="<?= ($action === 'users' ? 'active' : '') ?>">Manage Users</a>
+      <a class="hov" href="?action=events" class="<?= ($action === 'events' ? 'active' : '') ?>">Manage Events</a>
+    </div>
+    <div class="content">
+      <?php if ($action === "reports"): ?>
+        <h1>Registrations per Event</h1>
         <table>
-          <tr><th>Event ID</th><th>Title</th><th>Total Registrations</th></tr>
+          <tr>
+            <th>ID</th>
+            <th>Event</th>
+            <th>Total Registrations</th>
+          </tr>
           <?php foreach ($reports as $r): ?>
-            <tr><td><?php echo (int)$r['id']; ?></td><td><?php echo htmlspecialchars($r['title']); ?></td><td><?php echo (int)$r['total']; ?></td></tr>
+            <tr>
+              <td><?= $r['id'] ?></td>
+              <td><?= htmlspecialchars($r['title']) ?></td>
+              <td><?= $r['total'] ?></td>
+            </tr>
           <?php endforeach; ?>
-          <?php if (count($reports)===0): ?><tr><td colspan="3">No data.</td></tr><?php endif; ?>
+          <?php if (count($reports) === 0): ?><tr>
+              <td colspan="3">No data</td>
+            </tr><?php endif; ?>
         </table>
-      </div>
-    <?php elseif ($action === 'users'): ?>
-      <div class="card">
-        <h2>Create User</h2>
-        <form method="post">
-          <input type="hidden" name="form" value="create_user" />
-          <label>Username</label><br>
-          <input name="username" required><br>
-          <label>Password</label><br>
-          <input name="password" type="password" required><br>
-          <label>Role</label><br>
-          <select name="role"><option value="user">user</option><option value="admin">admin</option></select><br><br>
-          <button class="btn">Create</button>
-        </form>
-      </div>
-      <div class="card">
-        <h2>All Users</h2>
+
+      <?php elseif ($action === "users"): ?>
+        <h1>Manage Users</h1>
         <table>
-          <tr><th>ID</th><th>Username</th><th>Role</th><th>Created</th><th>Actions</th></tr>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
           <?php foreach ($users as $u): ?>
-          <tr>
-            <td><?php echo (int)$u['id']; ?></td>
-            <td><?php echo htmlspecialchars($u['username']); ?></td>
-            <td>
-              <form method="post" style="display:flex;gap:5px;">
-                <input type="hidden" name="form" value="update_user" />
-                <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>" />
-                <select name="role">
-                  <option value="user" <?php if($u['role']==='user') echo 'selected'; ?>>user</option>
-                  <option value="admin" <?php if($u['role']==='admin') echo 'selected'; ?>>admin</option>
-                </select>
-                <input name="password" type="password" placeholder="New password (optional)">
-                <button class="btn">Save</button>
-              </form>
-            </td>
-            <td><?php echo htmlspecialchars($u['created_at']); ?></td>
-            <td><a class="btn btn-danger" href="?action=delete_user&id=<?php echo (int)$u['id']; ?>" onclick="return confirm('Delete user?')">Delete</a></td>
-          </tr>
+            <tr>
+              <td><?= $u['id'] ?></td>
+              <td><?= htmlspecialchars($u['username']) ?></td>
+              <td><?= $u['role'] ?></td>
+              <td><?= $u['created_at'] ?></td>
+              <td style="display: flex;">
+                <button style="width: 40%; background-color:green; color:white; cursor:pointer;" onclick="document.getElementById('editUser<?= $u['id'] ?>').style.display='flex'"><span class="material-symbols-outlined">
+                    edit
+                  </span></button>
+                <a style="width: 40%; background-color:red; color:white; margin:8px auto; text-align:center;   border-radius: 4px;" href="?action=delete_user&id=<?= $u['id'] ?>" onclick="return confirm('Delete?')">
+                  <span class="material-symbols-outlined" style="margin-top: 10px;">
+                    delete
+                  </span></a>
+              </td>
+            </tr>
+
+            <div id="editUser<?= $u['id'] ?>" class="modal">
+              <div class="modal-content">
+                <span class="close" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+                <h3>Edit User</h3>
+                <form method="post">
+                  <input type="hidden" name="form" value="update_user">
+                  <input type="hidden" name="id" value="<?= $u['id'] ?>">
+                  <label>Username</label>
+                  <input name="username" value="<?= htmlspecialchars($u['username']) ?>">
+                  <label>Password (leave blank to keep)</label>
+                  <input type="password" name="password" placeholder="New password">
+                  <label>Role</label>
+                  <select name="role">
+                    <option value="user" <?= $u['role'] === 'user' ? 'selected' : '' ?>>User</option>
+                    <option value="admin" <?= $u['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
+                  </select>
+                  <button class="updte" type="submit">Update</button>
+                </form>
+              </div>
+            </div>
           <?php endforeach; ?>
         </table>
-      </div>
-    <?php elseif ($action === 'events'): ?>
-      <div class="card">
-        <h2>Create Event</h2>
-        <form method="post">
-          <input type="hidden" name="form" value="create_event" />
-          <label>Title</label><br>
-          <input name="title" required><br>
-          <label>Location</label><br>
-          <input name="location"><br>
-          <label>Date</label><br>
-          <input name="event_date" type="date" required><br>
-          <label>Description</label><br>
-          <textarea name="description"></textarea><br><br>
-          <button class="btn">Create</button>
-        </form>
-      </div>
-      <div class="card">
-        <h2>All Events</h2>
+
+        <button class="addinput" onclick="document.getElementById('addUser').style.display='flex'">Add User</button>
+        <div id="addUser" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+            <h3>Add User</h3>
+            <form method="post">
+              <input type="hidden" name="form" value="create_user">
+              <label>Username</label><input name="username" required>
+              <label>Password</label><input type="password" name="password" required>
+              <label>Role</label>
+              <select name="role">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button class="updte" type="submit">Create</button>
+            </form>
+          </div>
+        </div>
+
+      <?php elseif ($action === "events"): ?>
+        <h1>Manage Events</h1>
         <table>
-          <tr><th>ID</th><th>Title</th><th>Location</th><th>Date</th><th>Description</th><th>Actions</th></tr>
-          <?php foreach ($events as $e): ?>
           <tr>
-            <td><?php echo (int)$e['id']; ?></td>
-            <td><?php echo htmlspecialchars($e['title']); ?></td>
-            <td><?php echo htmlspecialchars($e['location']); ?></td>
-            <td><?php echo htmlspecialchars($e['event_date']); ?></td>
-            <td><?php echo htmlspecialchars($e['description']); ?></td>
-            <td>
-              <form method="post" style="display:inline-block;">
-                <input type="hidden" name="form" value="update_event" />
-                <input type="hidden" name="id" value="<?php echo (int)$e['id']; ?>" />
-                <input type="text" name="title" value="<?php echo htmlspecialchars($e['title']); ?>" required>
-                <input type="text" name="location" value="<?php echo htmlspecialchars($e['location']); ?>">
-                <input type="date" name="event_date" value="<?php echo htmlspecialchars($e['event_date']); ?>">
-                <input type="text" name="description" value="<?php echo htmlspecialchars($e['description']); ?>">
-                <button class="btn">Save</button>
-              </form>
-              <a class="btn btn-danger" href="?action=delete_event&id=<?php echo (int)$e['id']; ?>" onclick="return confirm('Delete event?')">Delete</a>
-            </td>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Actions</th>
           </tr>
+          <?php foreach ($events as $e): ?>
+            <tr>
+              <td style="width: 40px;"><?= $e['id'] ?></td>
+              <td style="width: 200px;"><?= htmlspecialchars($e['title']) ?></td>
+              <td style="width: 150px;"><?= htmlspecialchars($e['location']) ?></td>
+              <td style="width: 100px;"><?= $e['event_date'] ?></td>
+              <td style="width: 290px;"><?= htmlspecialchars($e['description']) ?></td>
+              <td style="display: flex;">
+                <button style="width: 40%; background-color:green; color:white; cursor:pointer;" onclick="document.getElementById('editEvent<?= $e['id'] ?>').style.display='flex'"><span class="material-symbols-outlined">
+                    edit
+                  </span></button>
+                <a style="width: 40%; background-color:red; color:white; margin:8px auto; text-align:center;border-radius: 4px;" href="?action=delete_event&id=<?= $e['id'] ?>"  onclick="return confirm('Delete?')">
+                  <span style="margin-top: 10px;" class="material-symbols-outlined">
+                    delete
+                  </span></a>
+              </td>
+            </tr>
+
+            <div id="editEvent<?= $e['id'] ?>" class="modal">
+              <div class="modal-content">
+                <span class="close" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+                <h3>Edit Event</h3>
+                <form method="post">
+                  <input type="hidden" name="form" value="update_event">
+                  <input type="hidden" name="id" value="<?= $e['id'] ?>">
+                  <label>Title</label>
+                  <input name="title" value="<?= htmlspecialchars($e['title']) ?>">
+                  <label>Location</label>
+                  <input name="location" value="<?= htmlspecialchars($e['location']) ?>">
+                  <label>Date</label>
+                  <input type="date" name="event_date" value="<?= $e['event_date'] ?>">
+                  <label>Description</label>
+                  <textarea name="description"><?= htmlspecialchars($e['description']) ?></textarea>
+                  <button  class="updte" type="submit">Update</button>
+                </form>
+              </div>
+            </div>
           <?php endforeach; ?>
         </table>
-      </div>
-    <?php endif; ?>
+
+        <button class="addinput" onclick="document.getElementById('addEvent').style.display='flex'">Add Event</button>
+        <div id="addEvent" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+            <h3>Add Event</h3>
+            <form method="post">
+              <input type="hidden" name="form" value="create_event">
+              <label>Title</label><input name="title" required>
+              <label>Location</label><input name="location">
+              <label>Date</label><input type="date" name="event_date" required>
+              <label>Description</label><textarea name="description"></textarea>
+              <button class="updte" type="submit">Create</button>
+            </form>
+          </div>
+        </div>
+      <?php endif; ?>
+    </div>
   </div>
 </body>
+
 </html>

@@ -56,10 +56,17 @@ if ($action === "delete_event" && isset($_GET['id'])) {
   $conn->query("DELETE FROM events WHERE id=$id");
   $action = "events";
 }
+if ($action === "delete_request" && isset($_GET['id'])) {
+  $id = (int)$_GET['id'];
+  $conn->query("DELETE FROM event_requests WHERE id=$id");
+  $action = "requested_events";
+}
 
 $users = [];
 $events = [];
 $reports = [];
+$requested_events = [];
+
 if ($action === "users") {
   $res = $conn->query("SELECT * FROM users ORDER BY id ASC");
   while ($row = $res->fetch_assoc()) $users[] = $row;
@@ -70,36 +77,39 @@ if ($action === "events") {
 }
 if ($action === "reports") {
   $res = $conn->query("SELECT e.id, e.title, COUNT(r.id) as total 
-                         FROM events e 
-                         LEFT JOIN registrations r ON r.event_id=e.id 
-                         GROUP BY e.id, e.title ORDER BY e.id ASC");
+                        FROM events e 
+                        LEFT JOIN registrations r ON r.event_id=e.id 
+                        GROUP BY e.id, e.title ORDER BY e.id ASC");
   while ($row = $res->fetch_assoc()) $reports[] = $row;
+}
+if ($action === "requested_events") {
+  $res = $conn->query("SELECT * FROM event_requests ORDER BY id ASC");
+  while ($row = $res->fetch_assoc()) $requested_events[] = $row;
 }
 ?>
 <!DOCTYPE html>
 <html>
-
 <head>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
   <link rel="stylesheet" href="styles/admin.css">
   <title>Admin</title>
 </head>
-
 <body>
   <div class="admin-container">
     <div class="sidebar">
       <div style="display: flex; ">
         <h2 style="color:white;">Admin</h2>
         <a href="logout.php" class="logout" style="margin-top: -10px;">
-          <span class="material-symbols-outlined">
-            logout
-          </span> </a>
+          <span class="material-symbols-outlined">logout</span>
+        </a>
       </div>
 
-      <a class="hov" href="?action=reports" class="<?= ($action === 'reports' ? 'active' : '') ?>">Reports</a>
-      <a class="hov" href="?action=users" class="<?= ($action === 'users' ? 'active' : '') ?>">Manage Users</a>
-      <a class="hov" href="?action=events" class="<?= ($action === 'events' ? 'active' : '') ?>">Manage Events</a>
+      <a class="hov <?= ($action === 'reports' ? 'active' : '') ?>" href="?action=reports">Reports</a>
+      <a class="hov <?= ($action === 'users' ? 'active' : '') ?>" href="?action=users">Manage Users</a>
+      <a class="hov <?= ($action === 'events' ? 'active' : '') ?>" href="?action=events">Manage Events</a>
+      <a class="hov <?= ($action === 'requested_events' ? 'active' : '') ?>" href="?action=requested_events">Requested Events</a>
     </div>
+
     <div class="content">
       <?php if ($action === "reports"): ?>
         <h1>Registrations per Event</h1>
@@ -116,9 +126,7 @@ if ($action === "reports") {
               <td><?= $r['total'] ?></td>
             </tr>
           <?php endforeach; ?>
-          <?php if (count($reports) === 0): ?><tr>
-              <td colspan="3">No data</td>
-            </tr><?php endif; ?>
+          <?php if (count($reports) === 0): ?><tr><td colspan="3">No data</td></tr><?php endif; ?>
         </table>
 
       <?php elseif ($action === "users"): ?>
@@ -138,13 +146,8 @@ if ($action === "reports") {
               <td><?= $u['role'] ?></td>
               <td><?= $u['created_at'] ?></td>
               <td style="display: flex;">
-                <button style="width: 40%; background-color:green; color:white; cursor:pointer;" onclick="document.getElementById('editUser<?= $u['id'] ?>').style.display='flex'"><span class="material-symbols-outlined">
-                    edit
-                  </span></button>
-                <a style="width: 40%; background-color:red; color:white; margin:8px auto; text-align:center;   border-radius: 4px;" href="?action=delete_user&id=<?= $u['id'] ?>" onclick="return confirm('Delete?')">
-                  <span class="material-symbols-outlined" style="margin-top: 10px;">
-                    delete
-                  </span></a>
+                <button style="width: 40%; background-color:green; color:white; cursor:pointer;" onclick="document.getElementById('editUser<?= $u['id'] ?>').style.display='flex'"><span class="material-symbols-outlined">edit</span></button>
+                <a style="width: 40%; background-color:red; color:white; margin:8px auto; text-align:center; border-radius: 4px;" href="?action=delete_user&id=<?= $u['id'] ?>" onclick="return confirm('Delete?')"><span class="material-symbols-outlined" style="margin-top: 10px;">delete</span></a>
               </td>
             </tr>
 
@@ -209,13 +212,9 @@ if ($action === "reports") {
               <td style="width: 100px;"><?= $e['event_date'] ?></td>
               <td style="width: 290px;"><?= htmlspecialchars($e['description']) ?></td>
               <td style="display: flex;">
-                <button style="width: 40%; background-color:green; color:white; cursor:pointer;" onclick="document.getElementById('editEvent<?= $e['id'] ?>').style.display='flex'"><span class="material-symbols-outlined">
-                    edit
-                  </span></button>
-                <a style="width: 40%; background-color:red; color:white; margin:8px auto; text-align:center;border-radius: 4px;" href="?action=delete_event&id=<?= $e['id'] ?>"  onclick="return confirm('Delete?')">
-                  <span style="margin-top: 10px;" class="material-symbols-outlined">
-                    delete
-                  </span></a>
+                <button style="width: 40%; background-color:green; color:white; cursor:pointer;" onclick="document.getElementById('editEvent<?= $e['id'] ?>').style.display='flex'"><span class="material-symbols-outlined">edit</span></button>
+                <a style="width: 40%; background-color:red; color:white; margin:8px auto; text-align:center;border-radius: 4px;" href="?action=delete_event&id=<?= $e['id'] ?>" onclick="return confirm('Delete?')">
+                  <span style="margin-top: 10px;" class="material-symbols-outlined">delete</span></a>
               </td>
             </tr>
 
@@ -234,7 +233,7 @@ if ($action === "reports") {
                   <input type="date" name="event_date" value="<?= $e['event_date'] ?>">
                   <label>Description</label>
                   <textarea name="description"><?= htmlspecialchars($e['description']) ?></textarea>
-                  <button  class="updte" type="submit">Update</button>
+                  <button class="updte" type="submit">Update</button>
                 </form>
               </div>
             </div>
@@ -256,9 +255,42 @@ if ($action === "reports") {
             </form>
           </div>
         </div>
+
+      <?php elseif ($action === "requested_events"): ?>
+        <h1>Requested Events</h1>
+        <table>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Title</th>
+            <th>Venue</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Message</th>
+            <th>Actions</th>
+          </tr>
+          <?php foreach ($requested_events as $req): ?>
+          <tr>
+            <td><?= $req['id'] ?></td>
+            <td><?= htmlspecialchars($req['name']) ?></td>
+            <td><?= htmlspecialchars($req['title']) ?></td>
+            <td><?= htmlspecialchars($req['venue']) ?></td>
+            <td><?= $req['event_date'] ?></td>
+            <td><?= htmlspecialchars($req['description']) ?></td>
+            <td><?= htmlspecialchars($req['message']) ?></td>
+            <td>
+              <a style="padding:10px 8px; background-color:red; color:white; text-align:center;border-radius: 4px;" href="?action=delete_request&id=<?= $req['id'] ?>" style="background-color:red;color:white;padding:5px 10px;border-radius:4px;text-decoration:none;" onclick="return confirm('Delete this request?')">
+                <span class="material-symbols-outlined">delete</span>
+              </a>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+          <?php if (count($requested_events) === 0): ?>
+          <tr><td colspan="8">No requested events</td></tr>
+          <?php endif; ?>
+        </table>
       <?php endif; ?>
     </div>
   </div>
 </body>
-
 </html>

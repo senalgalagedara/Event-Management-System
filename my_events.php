@@ -30,49 +30,61 @@ if ($res) {
 }
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=logout" />
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My Events | CEMS</title>
   <link rel="stylesheet" href="styles/events.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 </head>
 
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar">
+<nav class="navbar">
     <div class="container">
-      <div class="brand">College Event Management</div>
+      <div class="brand">UOC Events</div>
       <div class="nav-links">
         <a href="index.php">Home</a>
-        <a href="logout.php"><span style="top:14px; font-size:18px; position:absolute;" class="material-symbols-outlined">
-            logout
-          </span></a>
+        <a href="my_events.php">My Events</a>
+        <a href="help.php">Help</a>
       </div>
+      <?php if ($user): ?>
+        <?php if ($user['role'] === 'admin'): ?><a href="admin.php" class="admin-link">Admin</a><?php endif; ?>
+        <span class="user">👋 Hi, <?php echo htmlspecialchars($user['username']); ?></span>
+        <a href="logout.php" class="logout-btn">
+          <span class="material-symbols-outlined">logout</span>
+        </a>
+      <?php else: ?>
+        <a class="btn-login" href="login.php">Login</a>
+      <?php endif; ?>
     </div>
   </nav>
+  <header class="hero">
+    <div class="hero-overlay animate-fade">
+      <h1>My Registered Events</h1>
+      <p>Track, manage, and unregister from your upcoming events.</p>
+    </div>
+  </header>
 
-
-  <section class="container">
-    <header class="hero">
-      <div class="hero-overlay">
-        <h1>My Registered Events</h1>
-      </div>
-    </header>
-    <?php if ($info): ?><div class="alert success"><?php echo htmlspecialchars($info); ?></div><?php endif; ?>
+  <section class="container animate-slide">
+    <?php if ($info): ?>
+      <div class="alert success"><?php echo htmlspecialchars($info); ?></div>
+    <?php endif; ?>
 
     <div class="grid">
       <?php foreach ($rows as $r): ?>
-        <div class="event-card">
+        <div class="event-card animate-zoom">
           <div class="event-content">
             <h3><?php echo htmlspecialchars($r['title']); ?></h3>
-            <p class="date-location"><?php echo htmlspecialchars($r['event_date']); ?> • <?php echo htmlspecialchars($r['location']); ?></p>
+            <p class="date-location">
+              📅 <?php echo htmlspecialchars($r['event_date']); ?> <br> 📍 <?php echo htmlspecialchars($r['location']); ?>
+            </p>
             <p><?php echo nl2br(htmlspecialchars($r['description'])); ?></p>
 
-            <form method="post" style="margin-top:10px;">
+            <form method="post" style="margin-top:15px;">
               <input type="hidden" name="form" value="unregister" />
               <input type="hidden" name="event_id" value="<?php echo (int)$r['id']; ?>">
               <button class="btn-warning" type="submit">Unregister</button>
@@ -82,15 +94,14 @@ if ($res) {
       <?php endforeach; ?>
 
       <?php if (count($rows) === 0): ?>
-        <p>You haven’t registered for any events yet.</p>
+        <p class="no-events animate-fade">🚫 You haven’t registered for any events yet.</p>
       <?php endif; ?>
     </div>
   </section>
 
-  <footer class="footer" style="margin-top: 55vh; ">
+  <footer class="footer">
     <p>© 2025 CEMS</p>
   </footer>
 
 </body>
-
 </html>

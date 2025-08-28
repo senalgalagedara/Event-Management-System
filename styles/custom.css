@@ -51,9 +51,10 @@ body {
 }
 .navbar .logout-btn:hover { background: #e63956; }
 .navbar .user {
-  margin-left: 15px;
+  margin-right: -300px;
   font-weight: 600;
   color: #fff;
+
 }
 
 .hero {
@@ -99,7 +100,6 @@ body {
   transform: scale(1.05);
 }
 
-/* Events */
 .events {
   padding: 60px 50px;
 }
@@ -166,7 +166,6 @@ body {
 }
 .btn-primary:hover { background: linear-gradient(45deg, #2575fc, #6a11cb); }
 
-/* Footer */
 .footer {
   text-align: center;
   padding: 25px;
@@ -175,7 +174,6 @@ body {
   margin-top: 50px;
 }
 
-/* Animations */
 .animate-fade {
   animation: fadeIn 1.5s ease-in-out;
 }

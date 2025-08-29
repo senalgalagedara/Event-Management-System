@@ -77,7 +77,7 @@ if ($res) {
           </div>
         </div>
       <?php endforeach; ?>
-
+            
       <?php if (count($events) === 0): ?>
         <div class="no-events">
           <p>No events yet. Admins can add events from the Admin page.</p>
@@ -86,7 +86,7 @@ if ($res) {
     </div>
     
     <div class="btn-explore" style="width:20%; display:block; margin: 10px auto;">
-      <a href="events.php" class="btn-explore-more">View All Events</a>
+      <a href="events.php" class="btn-explore">View All Events</a>
     </div>
   </section>
 

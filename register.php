@@ -2,6 +2,7 @@
 require_once 'config.php';
 require_once 'auth.php';
 
+
 if (is_logged_in()) {
     header("Location: index.php");
     exit();
@@ -46,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if ($stmt->execute()) {
                     $success = "Registration successful! You can now login.";
-                    header("refresh:2;url=login.php?msg=Registration+successful");
+                    header("location:login.php");
                 } else {
                     $error = "Registration failed. Please try again.";
                 }

@@ -33,7 +33,8 @@ if ($res) {
         <a href="help.php">Help</a>
       </div>
       <?php if ($user): ?>
-        <?php if ($user['role'] === 'admin'): ?><a href="admin.php" class="admin-link">Admin</a><?php endif; ?>
+        <?php if ($user['role'] === 'admin'): ?>
+          <a href="admin.php" class="admin-link">Admin</a><?php endif; ?>
         <span class="user">Hi, <?php echo htmlspecialchars($user['username']); ?></span>
         <a href="logout.php" class="logout-btn">
           <span class="material-symbols-outlined">logout</span>
